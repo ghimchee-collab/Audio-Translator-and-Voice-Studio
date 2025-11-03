@@ -1,0 +1,5 @@
+{
+  "name": "AI Audio Translator & Voiceover Studio",
+  "description": "An application to transcribe audio, translate the text into various languages, and generate high-quality voiceovers for the translations.",
+  "requestFramePermissions": []
+}
