@@ -1,13 +1,23 @@
 
 import { GoogleGenAI, Modality } from '@google/genai';
 
-if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable not set");
+let ai: GoogleGenAI | undefined;
+
+function getAiClient(): GoogleGenAI {
+  if (!ai) {
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      // This error will be caught by the UI and displayed to the user.
+      throw new Error("API Key not found. Please ensure it is configured in your Vercel deployment's environment variables.");
+    }
+    ai = new GoogleGenAI({ apiKey });
+  }
+  return ai;
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const transcribeAudio = async (audioBase64: string, mimeType: string): Promise<string> => {
+  const aiClient = getAiClient();
   const model = 'gemini-2.5-flash';
   const audioPart = {
     inlineData: {
@@ -19,7 +29,7 @@ export const transcribeAudio = async (audioBase64: string, mimeType: string): Pr
     text: "Transcribe this audio recording into English text. Provide only the transcribed text, without any additional comments, headers, or explanations.",
   };
 
-  const response = await ai.models.generateContent({
+  const response = await aiClient.models.generateContent({
     model,
     contents: { parts: [audioPart, textPart] },
   });
@@ -28,6 +38,7 @@ export const transcribeAudio = async (audioBase64: string, mimeType: string): Pr
 };
 
 export const translateText = async (text: string, targetLanguage: string): Promise<string> => {
+  const aiClient = getAiClient();
   const model = 'gemini-2.5-flash';
   const prompt = `Translate the following English text into ${targetLanguage}. Maintain a similar character count, tone, and style. Only provide the translated text, without any additional comments or explanations.
 
@@ -37,7 +48,7 @@ ${text}
 ---
 `;
 
-  const response = await ai.models.generateContent({
+  const response = await aiClient.models.generateContent({
     model,
     contents: prompt,
   });
@@ -46,8 +57,9 @@ ${text}
 };
 
 export const generateSpeech = async (text: string): Promise<string> => {
+  const aiClient = getAiClient();
   const model = "gemini-2.5-flash-preview-tts";
-  const response = await ai.models.generateContent({
+  const response = await aiClient.models.generateContent({
     model,
     contents: [{ parts: [{ text }] }],
     config: {

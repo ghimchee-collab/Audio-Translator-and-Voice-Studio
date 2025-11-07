@@ -18,6 +18,11 @@
 </head>
   <body class="bg-gray-900 text-gray-100">
     <div id="root"></div>
+    <script>
+      // Polyfill `process` for browser environments like Vercel static hosting.
+      // This prevents a fatal crash when the application code tries to access process.env.
+      window.process = window.process || { env: {} };
+    </script>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>
